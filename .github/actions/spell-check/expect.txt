@@ -227,6 +227,7 @@ CHECKCANCELED
 CHILDACTIVATE
 CHILDWINDOW
 chrdavis
+chrisharris
 chrono
 Chrzan
 chrzan
@@ -399,6 +400,7 @@ ddd
 ddee
 ddf
 Deact
+DECLAR
 declspec
 decltype
 Dedup
@@ -652,6 +654,7 @@ formatetc
 FPower
 FRAMECHANGED
 FRAMEDOWNLOAD
+franky
 Froml
 fstream
 ftps
@@ -663,6 +666,7 @@ Functiondiscoverykeys
 fwlink
 fwrite
 fxcop
+FZE
 gabime
 GAC
 gacutil
@@ -1299,6 +1303,7 @@ MSDN
 msedge
 mshtmdid
 msi
+MSIFASTINSTALL
 MSIHANDLE
 MSIINSTALLER
 MSIL
@@ -1434,6 +1439,7 @@ ntdll
 NTFS
 NTSTATUS
 nuget
+null
 nullopt
 nullptr
 NUMLOCK
@@ -1911,6 +1917,7 @@ Soref
 SORTDOWN
 SOURCECLIENTAREAONLY
 SOURCEHEADER
+spamming
 spdisp
 spdlog
 spdo
@@ -2030,6 +2037,7 @@ syslog
 SYSMENU
 systemd
 SYSTEMTIME
+systray
 Tadele
 tadele
 Tahoma
@@ -2092,6 +2100,7 @@ todo
 toggleswitch
 toolbar
 Toolchain
+toolkitconverters
 toolset
 toolstrip
 tooltip
@@ -2311,6 +2320,7 @@ WINDOWPOSCHANGED
 WINDOWPOSCHANGING
 Windowsapp
 WINDOWSBUILDNUMBER
+Windowscodecs
 windowsdesktop
 windowssearch
 windowsx
@@ -2401,6 +2411,7 @@ XDiff
 XDocument
 XElement
 XFile
+xia
 XIncrement
 XInstance
 xlink
