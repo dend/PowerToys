@@ -101,17 +101,20 @@ namespace Awake.Core
 
             var data = new NotifyIconData();
             data.hWnd = hwnd;
-            data.uID = 0;
-            data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000020 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_GUID | NIF_SHOWTIP;
+            data.uID = 1;
+            data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_SHOWTIP;
             data.szTip = "Awake";
             data.dwState = 0;
             data.uCallbackMessage = NOTIFICATION_MESSAGE;
-            data.dwStateMask = 0x00000001 | 0x00000002; // NIS_SHAREDICON | NIS_HIDDEN
-            data.guidItem = Guid.NewGuid();
+            data.dwStateMask = 0x00000002; // NIS_SHAREDICON
             data.uTimeoutOrVersion = 4;
             data.hIcon = icon.Handle;
             var trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_DELETE, ref data);
             trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_ADD, ref data);
+
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+            int d = 0;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
 
             // return data;
         }
