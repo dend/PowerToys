@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -34,6 +35,24 @@ namespace Awake.Core
         static TrayHelper()
         {
             TrayIcon = new NotifyIcon();
+        }
+
+        public static void CreateTray()
+        {
+            IntPtr hwnd = Native.Bridge.GetDesktopWindow();
+
+            var data = new NotifyIconData();
+            data.hWnd = hwnd;
+            data.uID = 0;
+            data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000020 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_GUID | NIF_SHOWTIP;
+            data.szTip = "Awake";
+            data.dwState = 0;
+            data.dwStateMask = 0x00000001 | 0x00000002; // NIS_SHAREDICON | NIS_HIDDEN
+            data.guidItem = Guid.NewGuid();
+            data.uTimeoutOrVersion = 4;
+            var versionResult = Native.Bridge.Shell_NotifyIcon(0x00000004u, ref data);
+
+            // return data;
         }
 
         public static void InitializeTray(string text, Icon icon, ManualResetEvent? exitSignal, ContextMenuStrip? contextMenu = null)

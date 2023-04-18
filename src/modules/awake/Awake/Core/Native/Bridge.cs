@@ -76,5 +76,11 @@ namespace Awake.Core.Native
 
         [DllImport("user32.dll")]
         internal static extern void PostQuitMessage(int nExitCode);
+
+        [DllImport("shell32.dll", SetLastError = true)]
+        internal static extern bool Shell_NotifyIcon(uint dwMessage, ref NotifyIconData pnid);
+
+        [DllImport("user32.dll", SetLastError = false)]
+        internal static extern IntPtr GetDesktopWindow();
     }
 }
