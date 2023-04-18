@@ -86,7 +86,9 @@ namespace Awake.Core.Native
         [DllImport("user32.dll", SetLastError = true, EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateWindowEx(
                    int dwExStyle,
-                   ushort regResult,
+                   [MarshalAs(UnmanagedType.LPWStr)]
+                   string lpClassName,
+                   [MarshalAs(UnmanagedType.LPWStr)]
                    string lpWindowName,
                    uint dwStyle,
                    int x,

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,7 +79,7 @@ namespace Awake.Core
             wind_class.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
             wind_class.cbClsExtra = 0;
             wind_class.cbWndExtra = 0;
-            wind_class.hInstance = Process.GetCurrentProcess().Handle;
+            wind_class.hInstance = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]);
             wind_class.hIcon = IntPtr.Zero;
             wind_class.lpszClassName = "myClass";
             wind_class.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(delegWndProc);
@@ -87,9 +88,9 @@ namespace Awake.Core
 
             IntPtr hwnd = Native.Bridge.CreateWindowEx(
                               0,
-                              x,
+                              "myClass",
                               "WindowClassName",
-                              WS_OVERLAPPEDWINDOW,
+                              0x00000000,
                               0,
                               0,
                               300,
