@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -37,41 +38,115 @@ namespace Awake.Core
             TrayIcon = new NotifyIcon();
         }
 
+        internal delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+#pragma warning disable SA1310 // Field names should not contain underscore
+        private const int WM_MOUSEMOVE = 0x0200;
+        private const uint WS_OVERLAPPEDWINDOW = 0xcf0000;
+        private const uint WS_VISIBLE = 0x10000000;
+        private const uint CS_USEDEFAULT = 0x80000000;
+        private const uint CS_DBLCLKS = 8;
+        private const uint CS_VREDRAW = 1;
+        private const uint CS_HREDRAW = 2;
+        private const uint COLOR_WINDOW = 5;
+        private const uint COLOR_BACKGROUND = 1;
+        private const uint IDC_CROSS = 32515;
+        private const uint WM_DESTROY = 2;
+        private const uint WM_PAINT = 0x0f;
+        private const uint WM_LBUTTONUP = 0x0202;
+        private const uint WM_LBUTTONDBLCLK = 0x0203;
+        private const uint WM_RBUTTONUP = 0x0205;
+
+        private const int NIM_ADD = 0x00000000;
+        private const int NIM_DELETE = 0x00000002;
+        private const int NIM_MODIFY = 0x00000001;
+        private const int NIF_ICON = 0x00000002;
+        private const int NIF_MESSAGE = 0x00000001;
+        private const int NIF_TIP = 0x00000004;
+        private const int NIF_INFO = 0x00000010;
+        private const int NIIF_INFO = 0x00000001;
+
+        private const int WM_APP = 0x8000;
+        private const int NOTIFICATION_MESSAGE = WM_APP + 100;
+#pragma warning restore SA1310 // Field names should not contain underscore
+
+        private static WndProc delegWndProc = MyWndProc;
+
         public static void CreateTray(Icon icon)
         {
+            WNDCLASSEX wind_class = default(WNDCLASSEX);
+            wind_class.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
+            wind_class.cbClsExtra = 0;
+            wind_class.cbWndExtra = 0;
+            wind_class.hInstance = Process.GetCurrentProcess().Handle;
+            wind_class.hIcon = IntPtr.Zero;
+            wind_class.lpszClassName = "myClass";
+            wind_class.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(delegWndProc);
+            wind_class.hIconSm = IntPtr.Zero;
+            var x = Native.Bridge.RegisterClassEx(ref wind_class);
 
-            IntPtr windowHandle = Native.Bridge.CreateWindowEx(
-                              0x00000080U,
-                              "static",
-                              "Window Title",
-                              0x00000000U,
+            IntPtr hwnd = Native.Bridge.CreateWindowEx(
+                              0,
+                              x,
+                              "WindowClassName",
+                              WS_OVERLAPPEDWINDOW,
                               0,
                               0,
-                              800,
-                              800,
+                              300,
+                              400,
                               IntPtr.Zero,
                               IntPtr.Zero,
-                              IntPtr.Zero,
+                              wind_class.hInstance,
                               IntPtr.Zero);
 
             var data = new NotifyIconData();
-            data.hWnd = windowHandle;
+            data.hWnd = hwnd;
             data.uID = 0;
             data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000020 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_GUID | NIF_SHOWTIP;
             data.szTip = "Awake";
             data.dwState = 0;
+            data.uCallbackMessage = NOTIFICATION_MESSAGE;
             data.dwStateMask = 0x00000001 | 0x00000002; // NIS_SHAREDICON | NIS_HIDDEN
             data.guidItem = Guid.NewGuid();
             data.uTimeoutOrVersion = 4;
             data.hIcon = icon.Handle;
-            var trayIcon = Native.Bridge.Shell_NotifyIcon(0x00000002, ref data);
-            trayIcon = Native.Bridge.Shell_NotifyIcon(0x00000000, ref data);
-
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
-            int t = 0;
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
+            var trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_DELETE, ref data);
+            trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_ADD, ref data);
 
             // return data;
+        }
+
+        private static IntPtr MyWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+        {
+            switch (msg)
+            {
+                // All GUI painting must be done here
+                case WM_PAINT:
+                    break;
+
+                case WM_LBUTTONDBLCLK:
+                    MessageBox.Show("Doubleclick");
+                    break;
+
+                case WM_RBUTTONUP:
+                    Logger.LogInfo("RBUTTON!");
+                    break;
+
+                case WM_DESTROY:
+                    Native.Bridge.DestroyWindow(hWnd);
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            return Native.Bridge.DefWindowProc(hWnd, msg, wParam, lParam);
+        }
+
+        public static void OnRightClick()
+        {
+            Logger.LogInfo("Right click happened.");
         }
 
         public static void InitializeTray(string text, Icon icon, ManualResetEvent? exitSignal, ContextMenuStrip? contextMenu = null)
