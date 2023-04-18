@@ -37,12 +37,25 @@ namespace Awake.Core
             TrayIcon = new NotifyIcon();
         }
 
-        public static void CreateTray()
+        public static void CreateTray(Icon icon)
         {
-            IntPtr hwnd = Native.Bridge.GetDesktopWindow();
+
+            IntPtr windowHandle = Native.Bridge.CreateWindowEx(
+                              0x00000080U,
+                              "static",
+                              "Window Title",
+                              0x00000000U,
+                              0,
+                              0,
+                              800,
+                              800,
+                              IntPtr.Zero,
+                              IntPtr.Zero,
+                              IntPtr.Zero,
+                              IntPtr.Zero);
 
             var data = new NotifyIconData();
-            data.hWnd = hwnd;
+            data.hWnd = windowHandle;
             data.uID = 0;
             data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000020 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_GUID | NIF_SHOWTIP;
             data.szTip = "Awake";
@@ -50,38 +63,46 @@ namespace Awake.Core
             data.dwStateMask = 0x00000001 | 0x00000002; // NIS_SHAREDICON | NIS_HIDDEN
             data.guidItem = Guid.NewGuid();
             data.uTimeoutOrVersion = 4;
-            var versionResult = Native.Bridge.Shell_NotifyIcon(0x00000004u, ref data);
+            data.hIcon = icon.Handle;
+            var trayIcon = Native.Bridge.Shell_NotifyIcon(0x00000002, ref data);
+            trayIcon = Native.Bridge.Shell_NotifyIcon(0x00000000, ref data);
+
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+            int t = 0;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
 
             // return data;
         }
 
         public static void InitializeTray(string text, Icon icon, ManualResetEvent? exitSignal, ContextMenuStrip? contextMenu = null)
         {
-            Task.Factory.StartNew(
-                (tray) =>
-                {
-                    try
-                    {
-                        Logger.LogInfo("Setting up the tray.");
-                        if (tray != null)
-                        {
-                            ((NotifyIcon)tray).Text = text;
-                            ((NotifyIcon)tray).Icon = icon;
-                            ((NotifyIcon)tray).ContextMenuStrip = contextMenu;
-                            ((NotifyIcon)tray).Visible = true;
-                            ((NotifyIcon)tray).MouseClick += TrayClickHandler;
-                            Application.AddMessageFilter(new TrayMessageFilter(exitSignal));
-                            Application.Run();
-                            Logger.LogInfo("Tray setup complete.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError($"An error occurred initializing the tray. {ex.Message}");
-                        Logger.LogError($"{ex.StackTrace}");
-                    }
-                },
-                TrayIcon);
+            CreateTray(icon);
+
+            // Task.Factory.StartNew(
+            //    (tray) =>
+            //    {
+            //        try
+            //        {
+            //            Logger.LogInfo("Setting up the tray.");
+            //            if (tray != null)
+            //            {
+            //                ((NotifyIcon)tray).Text = text;
+            //                ((NotifyIcon)tray).Icon = icon;
+            //                ((NotifyIcon)tray).ContextMenuStrip = contextMenu;
+            //                ((NotifyIcon)tray).Visible = true;
+            //                ((NotifyIcon)tray).MouseClick += TrayClickHandler;
+            //                Application.AddMessageFilter(new TrayMessageFilter(exitSignal));
+            //                Application.Run();
+            //                Logger.LogInfo("Tray setup complete.");
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Logger.LogError($"An error occurred initializing the tray. {ex.Message}");
+            //            Logger.LogError($"{ex.StackTrace}");
+            //        }
+            //    },
+            //    TrayIcon);
         }
 
         /// <summary>
