@@ -9,21 +9,30 @@ namespace Awake.Core.Models
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.NamingRules", "SA1307:Accessible fields should begin with upper-case letter", Justification = "Win32 API convention.")]
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    internal struct WNDCLASSEX
+    public struct WNDCLASSEX
     {
         [MarshalAs(UnmanagedType.U4)]
         public int cbSize;
         [MarshalAs(UnmanagedType.U4)]
         public int style;
-        public IntPtr lpfnWndProc;
+        public IntPtr lpfnWndProc; // not WndProc
         public int cbClsExtra;
         public int cbWndExtra;
         public IntPtr hInstance;
         public IntPtr hIcon;
         public IntPtr hCursor;
         public IntPtr hbrBackground;
+        [MarshalAs(UnmanagedType.LPStr)]
         public string lpszMenuName;
+        [MarshalAs(UnmanagedType.LPStr)]
         public string lpszClassName;
         public IntPtr hIconSm;
+
+        public static WNDCLASSEX Build()
+        {
+            var nw = default(WNDCLASSEX);
+            nw.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
+            return nw;
+        }
     }
 }

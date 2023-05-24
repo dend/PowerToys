@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -75,35 +78,36 @@ namespace Awake.Core
 
         public static void CreateTray(Icon icon)
         {
-            WNDCLASSEX wind_class = default(WNDCLASSEX);
-            wind_class.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
-            wind_class.cbClsExtra = 0;
-            wind_class.cbWndExtra = 0;
-            wind_class.hInstance = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]);
-            wind_class.hIcon = IntPtr.Zero;
-            wind_class.lpszClassName = "myClass";
-            wind_class.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(delegWndProc);
-            wind_class.hIconSm = IntPtr.Zero;
-            var x = Native.Bridge.RegisterClassEx(ref wind_class);
+            string className = "myClass";
+            string windowName = string.Empty;
 
-            IntPtr hwnd = Native.Bridge.CreateWindowEx(
-                              0,
-                              "myClass",
-                              "WindowClassName",
-                              0x00000000,
-                              0,
-                              0,
-                              300,
-                              400,
-                              IntPtr.Zero,
-                              IntPtr.Zero,
-                              wind_class.hInstance,
-                              IntPtr.Zero);
+            var classNamePointer = Marshal.StringToHGlobalAuto(className);
+            var windowNamePointer = Marshal.StringToHGlobalAuto(windowName);
+
+            var wcex = WNDCLASSEX.Build();
+            wcex.style = 0x03;
+            wcex.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(delegWndProc);
+            wcex.hInstance = Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().ManifestModule);
+            wcex.lpszClassName = "myclass";
+
+            short atom = Native.Bridge.RegisterClassEx(ref wcex);
+            if (atom == 0)
+            {
+                Console.WriteLine($"reglass failed: {Marshal.GetLastWin32Error()}");
+            }
+
+            IntPtr hWnd = Native.Bridge.CreateWindowEx(0, "myclass", "mywindow", 0, 0, 0, 0, 0, new IntPtr(-3), IntPtr.Zero, wcex.hInstance, IntPtr.Zero);
+            if (hWnd == IntPtr.Zero)
+            {
+                Console.WriteLine($"CreateWindowEx failed: {Marshal.GetLastWin32Error()}");
+            }
+
+            var t = new Win32Exception(Marshal.GetLastWin32Error());
 
             var data = new NotifyIconData();
-            data.hWnd = hwnd;
+            data.hWnd = hWnd;
             data.uID = 1;
-            data.uFlags = 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000080; // NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_STATE | NIF_SHOWTIP;
+            data.uFlags = 0x07;
             data.szTip = "Awake";
             data.dwState = 0;
             data.uCallbackMessage = NOTIFICATION_MESSAGE;
@@ -112,6 +116,12 @@ namespace Awake.Core
             data.hIcon = icon.Handle;
             var trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_DELETE, ref data);
             trayIcon = Native.Bridge.Shell_NotifyIcon(NIM_ADD, ref data);
+
+            while (Native.Bridge.GetMessage(out MSG msg, IntPtr.Zero, 0, 0) != 0)
+            {
+                Native.Bridge.TranslateMessage(ref msg);
+                Native.Bridge.DispatchMessage(ref msg);
+            }
 
 #pragma warning disable CS0219 // Variable is assigned but its value is never used
             int d = 0;
@@ -138,7 +148,6 @@ namespace Awake.Core
 
                 case WM_DESTROY:
                     Native.Bridge.DestroyWindow(hWnd);
-
                     break;
 
                 default:

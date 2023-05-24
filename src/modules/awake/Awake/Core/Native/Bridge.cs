@@ -83,25 +83,12 @@ namespace Awake.Core.Native
         [DllImport("user32.dll", SetLastError = false)]
         internal static extern IntPtr GetDesktopWindow();
 
-        [DllImport("user32.dll", SetLastError = true, EntryPoint = "CreateWindowEx", CharSet = CharSet.Unicode)]
-        public static extern IntPtr CreateWindowEx(
-                   int dwExStyle,
-                   [MarshalAs(UnmanagedType.LPWStr)]
-                   string lpClassName,
-                   [MarshalAs(UnmanagedType.LPWStr)]
-                   string lpWindowName,
-                   uint dwStyle,
-                   int x,
-                   int y,
-                   int nWidth,
-                   int nHeight,
-                   IntPtr hWndParent,
-                   IntPtr hMenu,
-                   IntPtr hInstance,
-                   IntPtr lpParam);
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern IntPtr CreateWindowEx(uint dwExStyle, string lpClassName, string lpWindowName, uint dwStyle, int x, int y, int nWidth, int nHeight, IntPtr hWndParent, IntPtr hMenu, IntPtr hInstance, IntPtr lpParam);
 
-        [DllImport("user32.dll", SetLastError = true, EntryPoint = "RegisterClassEx")]
-        internal static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpWndClass);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.U2)]
+        internal static extern short RegisterClassEx([In] ref WNDCLASSEX lpwcx);
 
         [DllImport("user32.dll")]
         internal static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
@@ -114,5 +101,8 @@ namespace Awake.Core.Native
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         internal static extern IntPtr DispatchMessage(ref MSG lpMsg);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        internal static extern IntPtr GetModuleHandle([In] string? moduleName);
     }
 }
